@@ -11,7 +11,9 @@ data/languages/68000_register.cspec||GHIDRA||||END|
 data/languages/68020.slaspec||GHIDRA||reviewed||END|
 data/languages/68030.slaspec||GHIDRA||||END|
 data/languages/68040.slaspec||GHIDRA||||END|
+data/languages/coldfire.cspec||GHIDRA||||END|
 data/languages/coldfire.slaspec||GHIDRA||||END|
+data/languages/coldfire_emacfrac.pspec||GHIDRA||||END|
 data/languages/CPU32.slaspec||GHIDRA||||END|
 data/manuals/68000.idx||GHIDRA||||END|
 data/patterns/68000_patterns.xml||GHIDRA||||END|
