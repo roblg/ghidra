@@ -1040,7 +1040,7 @@ with : extGUARD=1 {
 
 :b^cc^".b" addr8		is op=6 & cc & addr8						{ if (cc) goto addr8; }
 :b^cc^".w" addr16		is op=6 & cc & d8base=0; addr16					{ if (cc) goto addr16; }
-:b^cc^".l": addr32		is op=6 & cc & d8base=255; addr32				{ if (cc) goto addr32; }
+:b^cc^".l" addr32		is op=6 & cc & d8base=255; addr32				{ if (cc) goto addr32; }
 
 :bchg.b reg9dn,eab              is (op=0 & reg9dn & op68=5 & $(MEM_ALTER_ADDR_MODES))... & eab {
 	local source = eab;
@@ -1717,14 +1717,23 @@ macro move16(src, dst)
 
 @ifdef COLDFIRE
 
-:mvs.b: eab, reg9dn		is (op=0x7 & op68=4 & reg9dn )... & eab		{ reg9dn = sext(eab); }
-:mvs.w: eaw, reg9dn		is (op=0x7 & op68=5 & reg9dn )... & eaw		{ reg9dn = sext(eaw); }
-:mvz.b: eab, reg9dn		is (op=0x7 & op68=6 & reg9dn )... & eab		{ reg9dn = zext(eab); }
-:mvz.w: eaw, reg9dn		is (op=0x7 & op68=7 & reg9dn )... & eaw		{ reg9dn = zext(eaw); }
+:mvs.b eab,reg9dn		is (op=0x7 & op68=4 & reg9dn )... & eab		{ reg9dn = sext(eab); resflags(reg9dn); logflags(); }
+:mvs.w eaw,reg9dn		is (op=0x7 & op68=5 & reg9dn )... & eaw		{ reg9dn = sext(eaw); resflags(reg9dn); logflags(); }
+:mvz.b eab,reg9dn		is (op=0x7 & op68=6 & reg9dn )... & eab		{ reg9dn = zext(eab); resflags(reg9dn); logflags(); }
+:mvz.w eaw,reg9dn		is (op=0x7 & op68=7 & reg9dn )... & eaw		{ reg9dn = zext(eaw); resflags(reg9dn); logflags(); }
 
-:mov3q "#"^d911, eal	is (op=0xa & op68=5 & d911 )  ... & eal		{ eal = d911; }
+:mov3q.l "#"^d911,eal	is (op=0xa & op68=5 & d911 )  ... & eal		{ local val:4 = d911; eal = val; resflags(val); logflags(); }
 
-:sats.l regdn			is opbig=0x4c & op37=0x10 & regdn	{ if (VF == 0) goto inst_next; regdn = (zext(regdn == 0 ) * 0x80000000) + (zext(regdn != 0) * 0x7fffffff); VF=0; CF=0; }
+# SATS.L Dx (CFPRM): if V is set, Dx = (Dx[31] == 0) ? 0x80000000 : 0x7fffffff, i.e. the
+# saturated value on the side the overflowed result wrapped away from. N,Z from the
+# result, V and C cleared, X unaffected.
+:sats.l regdn			is opbig=0x4c & op37=0x10 & regdn	{
+	if (VF == 0) goto <done>;
+	regdn = (regdn s>> 31) ^ 0x80000000;
+<done>
+	resflags(regdn);
+	logflags();
+}
 
 skip_addr: skipAddr		is op02=2 [skipAddr = inst_next + 2;] { export *[ram]:4 skipAddr; }
 skip_addr: skipAddr		is op02=3 [skipAddr = inst_next + 4;] { export *[ram]:4 skipAddr; }
@@ -2027,7 +2036,11 @@ submul: regdr-regdq		is regdq & divsgn=0 & divsz=1 & regdr	{
 	VF=0;
 
 }
-:mul^mulsize e2l,submul		is opbig=0x4c & op67=0 & $(DAT_ALTER_ADDR_MODES); submul & mulsize; e2l [ savmod2=savmod1; regtsan=regtfan; ] { glbdenom=e2l; build submul; }
+:mul^mulsize e2l,submul		is opbig=0x4c & op67=0 & $(DAT_ALTER_ADDR_MODES); submul & mulsize; e2l [ savmod2=savmod1; regtsan=regtfan; ] { glbdenom=e2l; build submul;
+@ifdef COLDFIRE
+	VF=0;
+@endif
+}
 
 :nbcd eab	is (opbig=0x48 & op67=0 & $(DAT_ALTER_ADDR_MODES))... & eab {
 	local tmp = eab;
@@ -2957,10 +2970,11 @@ accreg: ACC3	is ACC3 & acclsb=1 ; accmsb=1 		{ export ACC3; }
 
 
 :ff1 regdn							is reg315=0x98 & regdn {
-	regdn = lzcount(regdn);
-	VF = 0;
-	CF = 0;
-	resflags(regdn);
+	# N and Z reflect the source operand; the result is 32 when the source is 0
+	local src = regdn;
+	regdn = lzcount(src);
+	resflags(src);
+	logflags();
 }
 
 # MAC effective address table
