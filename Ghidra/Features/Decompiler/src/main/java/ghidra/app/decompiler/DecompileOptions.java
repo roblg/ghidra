@@ -216,6 +216,16 @@ public class DecompileOptions {
 	private final static boolean CONVENTION_OPTIONDEFAULT = true;	// Must match PrintC::resetDefaultsPrintC
 	private boolean conventionPrint;
 
+	private final static String SPACEQUALIFIER_OPTIONSTRING =
+		"Display.Print address space of dereferences";
+	private final static String SPACEQUALIFIER_OPTIONDESCRIPTION =
+		"If set, a pointer dereference into any address space other than the " +
+			"default data space is wrapped in the space's name, as in __Y(*ptr). " +
+			"This distinguishes accesses to separate memories on processors with " +
+			"more than one data space.";
+	private final static boolean SPACEQUALIFIER_OPTIONDEFAULT = true;	// Must match PrintC::resetDefaultsPrintC
+	private boolean spaceQualifier;
+
 	public final static String NOCAST_OPTIONSTRING = "Display.Disable printing of type casts";
 	private final static String NOCAST_OPTIONDESCRIPTION =
 		"If set, any C style type cast recovered by the decompiler will not be displayed. " +
@@ -511,6 +521,7 @@ public class DecompileOptions {
 		aliasBlock = ALIASBLOCK_OPTIONDEFAULT;
 		bitfieldAccess = BITFIELD_OPTIONDEFAULT;
 		conventionPrint = CONVENTION_OPTIONDEFAULT;
+		spaceQualifier = SPACEQUALIFIER_OPTIONDEFAULT;
 		noCastPrint = NOCAST_OPTIONDEFAULT;
 		braceFunction = BRACEFUNCTION_OPTIONDEFAULT;
 		braceIfElse = BRACEIFELSE_OPTIONDEFAULT;
@@ -577,6 +588,7 @@ public class DecompileOptions {
 		aliasBlock = opt.getEnum(ALIASBLOCK_OPTIONSTRING, ALIASBLOCK_OPTIONDEFAULT);
 		bitfieldAccess = opt.getBoolean(BITFIELD_OPTIONSTRING, BITFIELD_OPTIONDEFAULT);
 		conventionPrint = opt.getBoolean(CONVENTION_OPTIONSTRING, CONVENTION_OPTIONDEFAULT);
+		spaceQualifier = opt.getBoolean(SPACEQUALIFIER_OPTIONSTRING, SPACEQUALIFIER_OPTIONDEFAULT);
 		noCastPrint = opt.getBoolean(NOCAST_OPTIONSTRING, NOCAST_OPTIONDEFAULT);
 		braceFunction = opt.getEnum(BRACEFUNCTION_OPTIONSTRING, BRACEFUNCTION_OPTIONDEFAULT);
 		braceIfElse = opt.getEnum(BRACEIFELSE_OPTIONSTRING, BRACEIFELSE_OPTIONDEFAULT);
@@ -712,6 +724,9 @@ public class DecompileOptions {
 		opt.registerOption(CONVENTION_OPTIONSTRING, CONVENTION_OPTIONDEFAULT,
 			new HelpLocation(HelpTopics.DECOMPILER, "DisplayConvention"),
 			CONVENTION_OPTIONDESCRIPTION);
+		opt.registerOption(SPACEQUALIFIER_OPTIONSTRING, SPACEQUALIFIER_OPTIONDEFAULT,
+			new HelpLocation(HelpTopics.DECOMPILER, "DisplaySpaceQualifier"),
+			SPACEQUALIFIER_OPTIONDESCRIPTION);
 		opt.registerOption(NOCAST_OPTIONSTRING, NOCAST_OPTIONDEFAULT,
 			new HelpLocation(HelpTopics.DECOMPILER, "DisplayDisableCasts"),
 			NOCAST_OPTIONDESCRIPTION);
@@ -914,6 +929,9 @@ public class DecompileOptions {
 		}
 		if (conventionPrint != CONVENTION_OPTIONDEFAULT) {
 			appendOption(encoder, ELEM_CONVENTIONPRINTING, conventionPrint ? "on" : "off", "", "");
+		}
+		if (spaceQualifier != SPACEQUALIFIER_OPTIONDEFAULT) {
+			appendOption(encoder, ELEM_SPACEQUALIFIER, spaceQualifier ? "on" : "off", "", "");
 		}
 		if (noCastPrint != NOCAST_OPTIONDEFAULT) {
 			appendOption(encoder, ELEM_NOCASTPRINTING, noCastPrint ? "on" : "off", "", "");
@@ -1374,6 +1392,22 @@ public class DecompileOptions {
 	 */
 	public void setConventionPrint(boolean conventionPrint) {
 		this.conventionPrint = conventionPrint;
+	}
+
+	/**
+	 * {@return true if dereferences into a non-default address space name the space.}
+	 */
+	public boolean isSpaceQualifier() {
+		return spaceQualifier;
+	}
+
+	/**
+	 * Set whether a pointer dereference into an address space other than the default data
+	 * space is printed with the space's name, as in {@code __Y(*ptr)}.
+	 * @param spaceQualifier is true if the address space should be named
+	 */
+	public void setSpaceQualifier(boolean spaceQualifier) {
+		this.spaceQualifier = spaceQualifier;
 	}
 
 	/**

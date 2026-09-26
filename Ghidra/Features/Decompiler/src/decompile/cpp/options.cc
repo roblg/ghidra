@@ -55,6 +55,7 @@ ElementId ELEM_PARAM3 = ElementId("param3",204);
 ElementId ELEM_PROTOEVAL = ElementId("protoeval",205);
 ElementId ELEM_SETACTION = ElementId("setaction",206);
 ElementId ELEM_SETLANGUAGE = ElementId("setlanguage",207);
+ElementId ELEM_SPACEQUALIFIER = ElementId("spacequalifier",292);
 ElementId ELEM_SPLITDATATYPE = ElementId("splitdatatype",270);
 ElementId ELEM_STRUCTALIGN = ElementId("structalign",208);
 ElementId ELEM_TOGGLERULE = ElementId("togglerule",209);
@@ -113,6 +114,7 @@ OptionDatabase::OptionDatabase(Architecture *g)
   registerOption(new OptionInPlaceOps());
   registerOption(new OptionConventionPrinting());
   registerOption(new OptionNoCastPrinting());
+  registerOption(new OptionSpaceQualifier());
   registerOption(new OptionMaxLineWidth());
   registerOption(new OptionIndentIncrement());
   registerOption(new OptionCommentIndent());
@@ -448,6 +450,24 @@ string OptionNoCastPrinting::apply(Architecture *glb,const string &p1,const stri
   string prop;
   prop = val ? "on" : "off";
   return "No cast printing turned "+prop;
+}
+
+/// \class OptionSpaceQualifier
+/// \brief Toggle whether a dereference into a non-default address space names the space
+///
+/// With the option on, a LOAD or STORE through a pointer into any address space other than
+/// the default data space is printed as \b __SPACE(*ptr).
+string OptionSpaceQualifier::apply(Architecture *glb,const string &p1,const string &p2,const string &p3) const
+
+{
+  bool val = onOrOff(p1);
+  PrintC *lng = dynamic_cast<PrintC *>(glb->print);
+  if (lng == (PrintC *)0)
+    return "Can only set address space qualifiers for C language";
+  lng->setSpaceQualifier(val);
+  string prop;
+  prop = val ? "on" : "off";
+  return "Address space qualifiers turned "+prop;
 }
 
 /// \class OptionHideExtensions

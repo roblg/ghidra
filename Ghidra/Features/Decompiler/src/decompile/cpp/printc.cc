@@ -503,9 +503,33 @@ void PrintC::opCopy(const PcodeOp *op)
   pushVn(op->getIn(0),op,mods);
 }
 
+/// If the address space accessed by the given LOAD or STORE is not the default data space,
+/// a bare dereference does not say which memory is read or written.  This matters for
+/// architectures with several data spaces (Harvard DSPs, 8051 CODE/EXTMEM, ...).
+/// In that case, and if the pointer's data-type does not already carry the space,
+/// a functional qualifier naming the space is pushed, so the expression prints as
+/// \b __SPACE(*ptr) or \b __SPACE(ptr[i]).
+/// \param op is the LOAD or STORE
+/// \return \b true if a qualifier was pushed
+bool PrintC::pushSpaceQualifier(const PcodeOp *op)
+
+{
+  if (!option_space_qualifier) return false;
+  AddrSpace *spc = op->getIn(0)->getSpaceFromConst();
+  if (spc == (AddrSpace *)0 || spc->getType() != IPTR_PROCESSOR) return false;
+  if (spc == glb->getDefaultDataSpace()) return false;
+  Datatype *ct = op->getIn(1)->getHighTypeReadFacing(op);
+  if (ct->getMetatype() == TYPE_PTR && ((TypePointer *)ct)->getSpace() == spc)
+    return false;		// The pointer's data-type already names the space
+  pushOp(&function_call,op);
+  pushAtom(Atom("__" + spc->getName(),optoken,EmitMarkup::keyword_color,op));
+  return true;
+}
+
 void PrintC::opLoad(const PcodeOp *op)
 
 {
+  pushSpaceQualifier(op);
   bool usearray = checkArrayDeref(op->getIn(1));
   uint4 m = mods;
   if (usearray&&(!isSet(force_pointer)))
@@ -524,6 +548,7 @@ void PrintC::opStore(const PcodeOp *op)
   // We assume the STORE is a statement
   uint4 m = mods;
   pushOp(&assignment,op);	// This is an assignment
+  pushSpaceQualifier(op);
   usearray = checkArrayDeref(op->getIn(1));
   if (usearray && (!isSet(force_pointer)))
     m |= print_store_value;
@@ -1646,6 +1671,7 @@ void PrintC::resetDefaultsPrintC(void)
 {
   option_convention = true;
   option_hide_exts = true;
+  option_space_qualifier = true;
   option_inplace_ops = false;
   option_nocasts = false;
   option_NULL = false;

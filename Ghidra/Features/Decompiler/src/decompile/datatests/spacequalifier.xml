@@ -1,0 +1,26 @@
+<decompilertest>
+  <!--
+     Copy a byte from CODE (the default data space) to EXTMEM, then read EXTMEM back.
+     Both dereferences use DPTR, so only the address space tells them apart.
+     With the spacequalifier option on, the EXTMEM accesses are printed as __EXTMEM(...).
+  -->
+<binaryimage arch="8051:BE:16:default:default">
+<bytechunk space="CODE" offset="0xa000">
+a3e493f0a3e0f53022
+</bytechunk>
+<symbol space="CODE" offset="0xa000" name="spacecopy"/>
+</binaryimage>
+<script>
+  <com>lo fu spacecopy</com>
+  <com>dec</com>
+  <com>print C</com>
+  <com>option spacequalifier off</com>
+  <com>dec</com>
+  <com>print C</com>
+  <com>quit</com>
+</script>
+<stringmatch name="Space qualifier #1" min="1" max="1">__EXTMEM\(\*\(\w+ \*\)\(param_1 \+ 1\)\) = \*\(\w+ \*\)\(param_1 \+ 1\);</stringmatch>
+<stringmatch name="Space qualifier #2" min="1" max="1">\w+INTMEM30 = __EXTMEM\(\*\(\w+ \*\)\(param_1 \+ 2\)\);</stringmatch>
+<stringmatch name="Space qualifier #3" min="1" max="1">\w+INTMEM30 = \*\(\w+ \*\)\(param_1 \+ 2\);</stringmatch>
+<stringmatch name="Space qualifier #4" min="0" max="0">__CODE</stringmatch>
+</decompilertest>
