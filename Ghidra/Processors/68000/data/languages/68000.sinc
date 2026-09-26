@@ -1443,7 +1443,14 @@ cachetype: "both"		is op67=3							{ export 3:4; }
 
 @ifdef MC68040
 
+@ifdef COLDFIRE
+define pcodeop intouch;
+:cpushl cachetype,(regan)	is opbig=0xf4 & cachetype & op67!=0 & op5=1 & op34=1 & regan		{pushInvalidateCaches(cachetype, regan);}
+# INTOUCH (Ay): prefetch/touch the instruction cache line at Ay (cpushl encoding with cache field 0)
+:intouch (regan)			is opbig=0xf4 & op67=0 & op5=1 & op34=1 & regan		{ intouch(regan); }
+@else
 :cpushl cachetype,(regan)	is opbig=0xf4 & cachetype & op5=1 & op34=1 & regan		{pushInvalidateCaches(cachetype, regan);}
+@endif
 :cpushp cachetype,(regan)	is opbig=0xf4 & cachetype & op5=1 & op34=2 & regan		{pushInvalidateCaches(cachetype, regan);}
 :cpusha cachetype			is opbig=0xf4 & cachetype & op5=1 & op34=3			{pushInvalidateCaches(cachetype);}
 
@@ -1626,7 +1633,20 @@ subdiv: regdr:regdq		is regdq & regdr & divsz=1 & divsgn=1 {
 :extb.l regdn			is op=4 & reg9dn=4 & op68=7 & op35=0 & regdn		{ local tmp = regdn:1; regdn = sext(tmp); resflags(regdn); logflags(); }
 
 @ifdef COLDFIRE
-:halt				is d16=0x4ac8		unimpl
+define pcodeop halt;
+define pcodeop pulse;
+define pcodeop wddata;
+define pcodeop wdebug;
+:halt				is d16=0x4ac8		{ halt(); }
+:pulse				is d16=0x4acc		{ pulse(); }
+# WDDATA.sz <ea>y: write the operand to the debug module's DDATA port
+:wddata.b eab		is (opbig=0xfb & op67=0 & $(MEM_ALTER_ADDR_MODES))... & eab	{ wddata(eab); }
+:wddata.w eaw		is (opbig=0xfb & op67=1 & $(MEM_ALTER_ADDR_MODES))... & eaw	{ wddata(eaw); }
+:wddata.l eal		is (opbig=0xfb & op67=2 & $(MEM_ALTER_ADDR_MODES))... & eal	{ wddata(eal); }
+# WDEBUG.L <ea>y: load a debug-module control register from memory (2nd word is 0x0003)
+wdebugea: (regan)		is mode=2 & regan; opx015=3			{ export regan; }
+wdebugea: (d16,regan)	is mode=5 & regan; opx015=3; d16	{ local tmp = regan + d16; export tmp; }
+:wdebug.l wdebugea	is (opbig=0xfb & op67=3) ... & wdebugea		{ wdebug(wdebugea); }
 @endif
 
 :illegal			is d16=0x4afc		unimpl
