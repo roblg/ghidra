@@ -441,6 +441,7 @@ public record ElementId(String name, int id) {
 	public static final ElementId ELEM_SIGSETTINGS = new ElementId("sigsettings", 268);
 	public static final ElementId ELEM_VARSIG = new ElementId("varsig", 269);
 
+	public static final ElementId ELEM_SPACEQUALIFIER = new ElementId("spacequalifier", 292);
 	public static final ElementId ELEM_SPLITDATATYPE = new ElementId("splitdatatype", 270);
 	public static final ElementId ELEM_JUMPTABLEMAX = new ElementId("jumptablemax", 271);
 	public static final ElementId ELEM_NANIGNORE = new ElementId("nanignore", 272);
@@ -462,5 +463,5 @@ public record ElementId(String name, int id) {
 	public static final ElementId ELEM_EXTRA_STACK = new ElementId("extra_stack", 287);
 	public static final ElementId ELEM_CONSUME_REMAINING = new ElementId("consume_remaining", 288);
 
-	public static final ElementId ELEM_UNKNOWN = new ElementId("XMLunknown", 292);
+	public static final ElementId ELEM_UNKNOWN = new ElementId("XMLunknown", 293);
 }

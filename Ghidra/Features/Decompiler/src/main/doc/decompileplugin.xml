@@ -3596,6 +3596,20 @@
 	</para>
       </listitem>
     </varlistentry>
+    <varlistentry id="DisplaySpaceQualifier">
+      <term><emphasis role="bold">Print address space of dereferences</emphasis></term>
+      <listitem>
+	<para>
+	  Set whether a pointer dereference into an address space other than the default data space
+	  names that space.  Some processors (digital signal processors with separate X and Y memories,
+	  the 8051 with its CODE and EXTMEM spaces, etc.) access several data spaces through the same
+	  kind of pointer, and a bare <code>*ptr</code> does not show which memory is read or written.
+	  If this option is turned on, such a dereference is printed wrapped in the space's name, as in
+	  <code>__Y(*ptr)</code> or <code>__Y(ptr[2])</code>.  Dereferences into the default data space,
+	  and through pointers whose data-type already specifies the address space, are printed normally.
+	</para>
+      </listitem>
+    </varlistentry>
     <varlistentry id="DisplayConvention">
       <term><emphasis role="bold">Print calling convention name</emphasis></term>
       <listitem>

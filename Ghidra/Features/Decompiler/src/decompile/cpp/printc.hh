@@ -149,6 +149,7 @@ protected:
   bool option_nocasts;		///< Don't print a cast if \b true
   bool option_unplaced;		///< Set to \b true if we should display unplaced comments
   bool option_hide_exts;	///< Set to \b true if we should hide implied extension operations
+  bool option_space_qualifier;	///< Set to \b true if we should name the address space of non-default LOAD/STORE
   Emit::brace_style option_brace_func;		///< How function declaration braces should be formatted
   Emit::brace_style option_brace_ifelse;	///< How braces for if/else blocks are formatted
   Emit::brace_style option_brace_loop;		///< How braces for loop blocks are formatted
@@ -177,6 +178,7 @@ protected:
   virtual bool doEmitWideCharPrefix(void) const;
   
   bool checkArrayDeref(const Varnode *vn) const;	///< Determine whether a LOAD/STORE expression requires pointer '*' syntax
+  bool pushSpaceQualifier(const PcodeOp *op);	///< Push a qualifier naming the address space of a LOAD/STORE if needed
   bool checkBitFieldMember(const Varnode *vn,const TypeBitField *field) const;	///< Determine whether a ZPULL/SPULL/INSERT should use '->' or '.' notation
   bool checkAddressOfCast(const PcodeOp *op) const;	///< Check if CAST can be printed as an '&'
   void emitStructDefinition(const TypeStruct *ct);	///< Emit the definition of a \e structure data-type
@@ -246,6 +248,7 @@ public:
   void setCPlusPlusStyleComments(void) { setCommentDelimeter("// ","",true); }	///< Set c++-style "//" comment delimiters
   void setDisplayUnplaced(bool val) { option_unplaced = val; }	///< Toggle whether \e unplaced comments are displayed in the header
   void setHideImpliedExts(bool val) { option_hide_exts = val; }	///< Toggle whether implied extensions are hidden
+  void setSpaceQualifier(bool val) { option_space_qualifier = val; }	///< Toggle whether non-default address spaces are named on dereference
   void setBraceFormatFunction(Emit::brace_style style) { option_brace_func = style; }	///< Set how function declarations are formatted
   void setBraceFormatIfElse(Emit::brace_style style) { option_brace_ifelse = style; }	///< Set how if/else blocks are formatted
   void setBraceFormatLoop(Emit::brace_style style) { option_brace_loop = style; }	///< Set how loop blocks are formatted

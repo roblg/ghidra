@@ -61,6 +61,7 @@ extern ElementId ELEM_PARAM3;			///< Marshaling element \<param3>
 extern ElementId ELEM_PROTOEVAL;		///< Marshaling element \<protoeval>
 extern ElementId ELEM_SETACTION;		///< Marshaling element \<setaction>
 extern ElementId ELEM_SETLANGUAGE;		///< Marshaling element \<setlanguage>
+extern ElementId ELEM_SPACEQUALIFIER;		///< Marshaling element \<spacequalifier>
 extern ElementId ELEM_SPLITDATATYPE;		///< Marshaling element \<splitdatatype>
 extern ElementId ELEM_STRUCTALIGN;		///< Marshaling element \<structalign>
 extern ElementId ELEM_TOGGLERULE;		///< Marshaling element \<togglerule>
@@ -185,6 +186,12 @@ public:
 class OptionNoCastPrinting : public ArchOption {
 public:
   OptionNoCastPrinting(void) { name = "nocastprinting"; }	///< Constructor
+  virtual string apply(Architecture *glb,const string &p1,const string &p2,const string &p3) const;
+};
+
+class OptionSpaceQualifier : public ArchOption {
+public:
+  OptionSpaceQualifier(void) { name = "spacequalifier"; }	///< Constructor
   virtual string apply(Architecture *glb,const string &p1,const string &p2,const string &p3) const;
 };
 
