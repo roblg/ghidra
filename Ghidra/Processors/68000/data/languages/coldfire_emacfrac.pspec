@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ColdFire with the EMAC unit assumed to run in fractional mode (MACSR[F/I]=1),
+  e.g. DSP-style firmware that sets MACSR to 0x20. Selects the fractional EMAC
+  semantics of coldfire.sla for the whole program (see the EMAC section of 68000.sinc).
+  Individual ranges can still be switched with the emacFrac / emacRnd16 context
+  registers (Set Register Values), e.g. emacRnd16=1 where MACSR[S/U]=1.
+-->
+<processor_spec>
+  <properties>
+    <property key="emulateInstructionStateModifierClass" value="ghidra.program.emulation.m68kEmulateInstructionStateModifier"/>
+    <property key="useropLibs" value="m68k,trig"/>
+  </properties>
+  <programcounter register="PC"/>
+  <context_data>
+    <context_set space="ram">
+      <set name="emacFrac" val="1" description="EMAC fractional mode (MACSR F/I=1)"/>
+    </context_set>
+  </context_data>
+</processor_spec>
