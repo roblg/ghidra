@@ -1505,6 +1505,7 @@ cachetype: "both"		is op67=3							{ export 3:4; }
 	reg9dn = (rem << 16) | (div & 0xffff);
 	}
 
+@ifndef COLDFIRE
 #remyes: "s"			is regdq & (regdr=regdq) & divsgn=1				{ }
 remyes: "sl"			is divsgn=1							{ }
 #remyes: "u"			is regdq & (regdr=regdq) & divsgn=0				{ }
@@ -1562,7 +1563,47 @@ subdiv: regdr:regdq		is regdq & regdr & divsz=1 & divsgn=1 {
 # divu.l  (when divsz = 1) is regdr concat regdq / el2 - > regdr and regdq
 # divul.l (when divsz = 0) is regdq / el2 -> regdr and regdq
 #
+@endif # !COLDFIRE (68k divl tables)
+
+@ifdef COLDFIRE
+# ColdFire long divides (CFPRM DIVS.L/DIVU.L, REMS.L/REMU.L). Only the 32/32 forms exist
+# (ext bit 10 = 0). The extension word holds Dx in bits 14-12 and Dw in bits 2-0:
+#   Dw == Dx : DIVx.L <ea>y,Dx     Dx = Dx / <ea>y  (quotient)
+#   Dw != Dx : REMx.L <ea>y,Dw:Dx  Dw = Dx % <ea>y  (remainder), Dx is unchanged
+# N and Z are set from the quotient, V is modeled as 0 (overflow only for 0x80000000/-1),
+# C is cleared. Allowed <ea>y: Dy, (Ay), (Ay)+, -(Ay), (d16,Ay).
+@define CF_DIVL_MODES "(mode=0 | mode=2 | mode=3 | mode=4 | mode=5)"
+@define CF_DQ_EQ_DR "((regdq=0 & regdr=0) | (regdq=1 & regdr=1) | (regdq=2 & regdr=2) | (regdq=3 & regdr=3) | (regdq=4 & regdr=4) | (regdq=5 & regdr=5) | (regdq=6 & regdr=6) | (regdq=7 & regdr=7))"
+
+:divs.l e2l,regdq		is opbig=0x4c & op67=1 & $(CF_DIVL_MODES); divsgn=1 & divsz=0 & regdq & $(CF_DQ_EQ_DR); e2l [ savmod2=savmod1; regtsan=regtfan; ] {
+	local den:4 = e2l;
+	local quot:4 = regdq s/ den;
+	regdq = quot;
+	resflags(quot); VF=0; CF=0;
+}
+:divu.l e2l,regdq		is opbig=0x4c & op67=1 & $(CF_DIVL_MODES); divsgn=0 & divsz=0 & regdq & $(CF_DQ_EQ_DR); e2l [ savmod2=savmod1; regtsan=regtfan; ] {
+	local den:4 = e2l;
+	local quot:4 = regdq / den;
+	regdq = quot;
+	resflags(quot); VF=0; CF=0;
+}
+:rems.l e2l,regdr:regdq	is opbig=0x4c & op67=1 & $(CF_DIVL_MODES); divsgn=1 & divsz=0 & regdq & regdr; e2l [ savmod2=savmod1; regtsan=regtfan; ] {
+	local den:4 = e2l;
+	local num:4 = regdq;
+	regdr = num s% den;
+	local quot:4 = num s/ den;
+	resflags(quot); VF=0; CF=0;
+}
+:remu.l e2l,regdr:regdq	is opbig=0x4c & op67=1 & $(CF_DIVL_MODES); divsgn=0 & divsz=0 & regdq & regdr; e2l [ savmod2=savmod1; regtsan=regtfan; ] {
+	local den:4 = e2l;
+	local num:4 = regdq;
+	regdr = num % den;
+	local quot:4 = num / den;
+	resflags(quot); VF=0; CF=0;
+}
+@else
 :div^remyes^".l" e2l,subdiv	is opbig=0x4c & op67=1 & $(DAT_ALTER_ADDR_MODES); subdiv & remyes; e2l [ savmod2=savmod1; regtsan=regtfan;] { glbdenom=e2l; build subdiv; CF=0; resflags(subdiv);}
+@endif # COLDFIRE
 
 :eor.b reg9dnb,eab		is (op=11 & reg9dnb & op68=4 & $(DAT_ALTER_ADDR_MODES))... & eab			{ eor(reg9dnb, eab); }
 :eor.w reg9dnw,eaw		is (op=11 & reg9dnw & op68=5 & $(DAT_ALTER_ADDR_MODES))... & eaw			{ eor(reg9dnw, eaw); }
